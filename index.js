@@ -5,29 +5,23 @@ import { showSpinner, hideSpinner } from "./spinner.js";
 const showUserBtnElem = document.querySelector(".name-form__btn");
 const userNameInputElem = document.querySelector(".name-form__input");
 
-const onSearchUser = () => {
+const onSearchUser = async () => {
   showSpinner();
 
   const userName = userNameInputElem.value;
 
-  fetchUserData(userName)
-    .then((userData) => {
-      renderUserData(userData);
+  try {
+    const userData = await fetchUserData(userName);
 
-      return userData.repos_url;
-    })
-    .then((url) => fetchRepositories(url))
-    .then((reposList) => {
-      renderRepos(reposList);
-      hideSpinner();
-    })
-    .catch((err) => {
-      hideSpinner();
-      alert(err.message);
-    })
-    .finally(() => {
-      userNameInputElem.value = "";
-    });
+    renderUserData(userData);
+    renderRepos(await fetchRepositories(userData.repos_url));
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    hideSpinner();
+
+    userNameInputElem.value = "";
+  }
 };
 
 showUserBtnElem.addEventListener("click", onSearchUser);
